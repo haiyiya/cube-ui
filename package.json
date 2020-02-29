@@ -15,7 +15,7 @@
     "doc-demo-build": "npm run doc-build && npm run demo-build",
     "release": "bash ./build/release/publish.sh",
     "release-docs": "bash ./build/release/docs.sh",
-    "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
+    "lint": "eslint --fix --ext .js,.vue src test/unit/specs test/e2e/specs",
     "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "codecov": "codecov",
     "test": "npm run unit && npm run codecov",

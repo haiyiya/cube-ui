@@ -89,7 +89,7 @@
     },
     data() {
       return {
-        imgExs: [{url:'/test', isLoaded: false}],
+        imgExs: [{url: '/test', isLoaded: false}],
         currentPageIndex: this.initialIndex,
         options: {
           observeDOM: false,
@@ -123,9 +123,9 @@
         this.setPageIndex(newIndex)
       },
       imgs: {
-        handler: function(val){
+        handler: function(val) {
           this.imgExs = []
-          for(let i in val) {
+          for (let i in val) {
             this.imgExs.push({url: val[i], isLoaded: false, random: '071123'})
           }
         },
@@ -185,7 +185,7 @@
       },
       imgError(imgEx) {
         let timeout = this.reloadInterval
-        if(timeout > 0) {
+        if (timeout > 0) {
           setTimeout(() => {
             imgEx.random = new Date().getTime()
           }, timeout)
