@@ -8,7 +8,7 @@
         <cube-slide
           ref="slide"
           v-if="isVisible"
-          :data="imgs"
+          :data="imgExs"
           :initial-index="currentPageIndex"
           :auto-play="false"
           :loop="loop"
@@ -17,7 +17,7 @@
           @change="slideChangeHandler"
         >
           <cube-slide-item
-            v-for="(img, index) in imgs"
+            v-for="(imgEx, index) in imgExs"
             :key="index"
           >
             <div class="cube-image-preview-item" @click="itemClickHandler">
@@ -26,7 +26,8 @@
                 :options="scrollOptions"
                 @dblclick.native="dblclickHandler(index, $event)"
               >
-                <img class="cube-image-preview-img" :src="img" @load="imgLoad(index)">
+                <img class="cube-image-preview-img" :src="imgEx.url + '?random=' + imgEx.random" v-show="imgEx.isLoaded" @load="imgLoad(imgEx, index)" @error="imgError(imgEx)">
+                <cube-loading :size="28" v-show="!imgEx.isLoaded"></cube-loading>
               </cube-scroll>
             </div>
           </cube-slide-item>
@@ -62,6 +63,10 @@
         type: Number,
         default: 0
       },
+      reloadInterval: {
+        type: Number,
+        default: 0
+      },
       imgs: {
         type: Array,
         default() {
@@ -84,6 +89,7 @@
     },
     data() {
       return {
+        imgExs: [{url:'/test', isLoaded: false}],
         currentPageIndex: this.initialIndex,
         options: {
           observeDOM: false,
@@ -115,6 +121,15 @@
     watch: {
       initialIndex(newIndex) {
         this.setPageIndex(newIndex)
+      },
+      imgs: {
+        handler: function(val){
+          this.imgExs = []
+          for(let i in val) {
+            this.imgExs.push({url: val[i], isLoaded: false, random: '071123'})
+          }
+        },
+        immediate: true
       }
     },
     methods: {
@@ -161,10 +176,19 @@
         const slide = this.$refs.slide.slide
         slide && slide.goToPage(index, 0)
       },
-      imgLoad(i) {
+      imgLoad(imgEx, i) {
         /* istanbul ignore if */
+        imgEx.isLoaded = true
         if (this.isVisible && this.$refs.items) {
           this.$refs.items[i].scroll.refresh()
+        }
+      },
+      imgError(imgEx) {
+        let timeout = this.reloadInterval
+        if(timeout > 0) {
+          setTimeout(() => {
+            imgEx.random = new Date().getTime()
+          }, timeout)
         }
       },
       setPageIndex(currentPageIndex) {
