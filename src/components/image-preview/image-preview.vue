@@ -26,7 +26,7 @@
                 :options="scrollOptions"
                 @dblclick.native="dblclickHandler(index, $event)"
               >
-                <img class="cube-image-preview-img" :src="imgEx.url + '?random=' + imgEx.random" v-show="imgEx.isLoaded" @load="imgLoad(imgEx, index)" @error="imgError(imgEx)">
+                <img class="cube-image-preview-img" :src="loadIndices.indexOf(index) > -1 ? imgEx.url : ''" v-show="imgEx.isLoaded" @load="imgLoad(imgEx, index)" @error="imgError(imgEx)">
                 <cube-loading :size="28" v-show="!imgEx.isLoaded"></cube-loading>
               </cube-scroll>
             </div>
@@ -89,6 +89,7 @@
     },
     data() {
       return {
+        loadIndices: [],
         imgExs: [{url: '/test', isLoaded: false}],
         currentPageIndex: this.initialIndex,
         options: {
@@ -119,8 +120,11 @@
       }
     },
     watch: {
-      initialIndex(newIndex) {
-        this.setPageIndex(newIndex)
+      initialIndex: {
+        handler: function(newIndex) {
+          this.setPageIndex(newIndex)
+        },
+        immediate: true
       },
       imgs: {
         handler: function(val) {
@@ -161,6 +165,7 @@
         })
       },
       hide() {
+        this.loadIndices = []
         this.isVisible = false
         this.$emit(EVENT_HIDE)
       },
@@ -205,6 +210,26 @@
           }
         }
         this.currentPageIndex = currentPageIndex
+        this.setloadIndex(currentPageIndex)
+      },
+      setloadIndex(currentPageIndex) {
+        console.log(currentPageIndex)
+        let addIndices = []
+        if (this.loop) {
+          addIndices = [
+            currentPageIndex > 0 ? (currentPageIndex - 1) : (this.imgEx.length - 1),
+            currentPageIndex,
+            (currentPageIndex < this.imgEx.length - 1) ? (currentPageIndex + 1) : 0
+          ]
+        } else {
+          addIndices = [currentPageIndex - 1, currentPageIndex, currentPageIndex + 1]
+        }
+
+        for (let i in addIndices) {
+          if (this.loadIndices.indexOf(addIndices[i]) === -1) {
+            this.loadIndices.push(addIndices[i])
+          }
+        }
       },
       slideChangeHandler(currentPageIndex) {
         this.setPageIndex(currentPageIndex)
