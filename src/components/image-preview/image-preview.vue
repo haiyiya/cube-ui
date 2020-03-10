@@ -139,6 +139,7 @@
     methods: {
       show() {
         this.isVisible = true
+        this.setloadIndex(this.initialIndex)
         this.$nextTick(() => {
           this._listenSlide()
           this._listenScroll()
@@ -213,7 +214,6 @@
         this.setloadIndex(currentPageIndex)
       },
       setloadIndex(currentPageIndex) {
-        console.log(currentPageIndex)
         let addIndices = []
         if (this.loop) {
           addIndices = [
