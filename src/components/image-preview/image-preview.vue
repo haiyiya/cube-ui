@@ -26,8 +26,10 @@
                 :options="scrollOptions"
                 @dblclick.native="dblclickHandler(index, $event)"
               >
-                <img class="cube-image-preview-img" :src="loadIndices.indexOf(index) > -1 ? imgEx.url : ''" v-show="imgEx.isLoaded" @load="imgLoad(imgEx, index)" @error="imgError(imgEx)">
-                <cube-loading :size="28" v-show="!imgEx.isLoaded"></cube-loading>
+                <!-- 仅显示/加载 loadIndices 中索引的页面，且仅在图片加载成功后显示 -->
+                <img class="cube-image-preview-img" :src="loadIndices.indexOf(index) > -1 ? (imgEx.url + '?random=' + imgEx.random) : ''" v-show="loadIndices.indexOf(index) > -1&&imgEx.isLoaded" @load="imgLoad(imgEx, index)" @error="imgError(imgEx)">
+                <!-- 仅显示 loadIndices 中索引的页面加载动画 -->
+                <cube-loading :size="28" v-show="loadIndices.indexOf(index) > -1&&!imgEx.isLoaded"></cube-loading>
               </cube-scroll>
             </div>
           </cube-slide-item>
@@ -63,6 +65,7 @@
         type: Number,
         default: 0
       },
+      // 图片加载失败后重新加载间隔时间，0：不重新加载
       reloadInterval: {
         type: Number,
         default: 0
@@ -73,6 +76,10 @@
           /* istanbul ignore next */
           return []
         }
+      },
+      isClickHide: {
+        type: Boolean,
+        default: true
       },
       loop: {
         type: Boolean,
@@ -89,8 +96,10 @@
     },
     data() {
       return {
+        // 需要加载的索引
         loadIndices: [],
-        imgExs: [{url: '/test', isLoaded: false}],
+        // 图片对象集合，url：图片地址，isLoaded：图片加载成功标志位
+        imgExs: [],
         currentPageIndex: this.initialIndex,
         options: {
           observeDOM: false,
@@ -139,7 +148,7 @@
     methods: {
       show() {
         this.isVisible = true
-        this.setloadIndex(this.initialIndex)
+        this.setPageIndex(this.initialIndex)
         this.$nextTick(() => {
           this._listenSlide()
           this._listenScroll()
@@ -184,10 +193,14 @@
       },
       imgLoad(imgEx, i) {
         /* istanbul ignore if */
+        // 加载成功显示图片
         imgEx.isLoaded = true
-        if (this.isVisible && this.$refs.items) {
-          this.$refs.items[i].scroll.refresh()
-        }
+        // 下次DOM更新时刷新缩放
+        this.$nextTick(() => {
+          if (this.isVisible && this.$refs.items) {
+            this.$refs.items[i].scroll.refresh()
+          }
+        })
       },
       imgError(imgEx) {
         let timeout = this.reloadInterval
@@ -211,15 +224,17 @@
           }
         }
         this.currentPageIndex = currentPageIndex
-        this.setloadIndex(currentPageIndex)
+        this.addLoadIndex(currentPageIndex)
       },
-      setloadIndex(currentPageIndex) {
+      // 添加要加载的索引，当前索引及前后两个索引
+      addLoadIndex(currentPageIndex) {
         let addIndices = []
         if (this.loop) {
+          // 循环查看的情况
           addIndices = [
-            currentPageIndex > 0 ? (currentPageIndex - 1) : (this.imgEx.length - 1),
+            currentPageIndex > 0 ? (currentPageIndex - 1) : (this.imgExs.length - 1),
             currentPageIndex,
-            (currentPageIndex < this.imgEx.length - 1) ? (currentPageIndex + 1) : 0
+            (currentPageIndex < this.imgExs.length - 1) ? (currentPageIndex + 1) : 0
           ]
         } else {
           addIndices = [currentPageIndex - 1, currentPageIndex, currentPageIndex + 1]
@@ -306,7 +321,7 @@
       itemClickHandler() {
         clearTimeout(this.clickTid)
         this.clickTid = setTimeout(() => {
-          !this.dblZooming && this.hide()
+          !this.dblZooming && this.isClickHide && this.hide()
         }, this.scrollOptions.bounceTime)
       },
       zoomTo(scroll, scale, e) {
