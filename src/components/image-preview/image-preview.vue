@@ -2,6 +2,7 @@
   <transition name="cube-image-preview-fade">
     <cube-popup type="image-preview" :z-index="zIndex" :center="false" v-show="isVisible">
       <div class="cube-image-preview-container">
+        <i class="cubeic-back cube-image-preview-back" v-if="isShowBack" v-on:click="!isClickHide && hide()"></i>
         <div class="cube-image-preview-header">
           <slot name="header" :current="currentPageIndex"></slot>
         </div>
@@ -80,6 +81,10 @@
       isClickHide: {
         type: Boolean,
         default: true
+      },
+      isShowBack: {
+        type: Boolean,
+        default: false
       },
       loop: {
         type: Boolean,
@@ -358,6 +363,13 @@
   .cube-image-preview-container
     height: 100%
     margin: 0 -10px
+    .cube-image-preview-back
+      position: fixed
+      top: 0
+      left: 0
+      padding: 12px
+      z-index: 100
+      color: #333
   .cube-image-preview-header,
   .cube-image-preview-footer
     position: absolute
